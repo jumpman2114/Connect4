@@ -1,38 +1,65 @@
 /**
- * The Connect4 class is the logic for the connect4 game.
+ * The Connect4 class is the logic for the Connect4 game.
  * @author Marcus Miller
- * @version 1
+ * @version 2
  */
 import java.util.Scanner;
+import java.util.InputMismatchException;
 public class Connect4{
   /**
-   * board represents the checker board
+   * board represents the Connect4 board
    */
-  public char[][] board; // game board
-  
-
+  public char[][] board;
   /**
-   * Runs a two player text console chess game.
+   * height represents the current height of each column
+   */
+  public int [] height;
+  /**
+   * COLUMNS is the number of columns on the Checker board.
+   */
+  public static int COLUMNS = 7;
+  /**
+   * ROWS is the number of rows on the Checker board.
+   */
+  public static int ROWS = 6;
+  /**
+   * Runs a two player text console Connect4 game with two modes.
+   * You can play another player or a computer.
    */
   public static void main(String[] args){
     Connect4 c4 = new Connect4();
     Connect4TextConsole display = new Connect4TextConsole();
+    Connect4ComputerPlayer computer = new Connect4ComputerPlayer();
     Scanner s = new Scanner(System.in);
     display.displayBoard(c4.board);
     display.displayStart();
+    char mode = 'a';
+    while (!(mode == 'C' || mode == 'P')){ 
+      mode = c4.getGameMode(s);
+      if (!(mode == 'C' || mode == 'P')){
+        display.displayWrongMode();
+      }
+    }
+    display.displayStart2(mode);
     char turn = 'X';
     int move;
-    int result = 0; //0 still playing 1 player x win 2 player o win 3 tie
-    int valid; //0 not valid 1-6 row
+    int result = 0; //0=still playing, 1=player X wins, 2=player O wins, 3=tie
+    int valid; //0=not valid move, 1-6= valid and the number represents the row
     while (result == 0){
       display.displayPlayerTurn(turn);
-      move = c4.getMove(s);
+      if (mode == 'C' && turn == 'O'){
+        move = computer.getMove(c4.board);
+        display.displayMove(move);
+      }
+      else{
+	move = c4.getMove(s);
+      }
       valid = c4.validMove(move);
       if (valid == 0){
         display.invalidMove();
         continue;
       }
-      c4.placePiece(valid, move, turn);
+      c4.placePiece(move, turn);
       display.displayBoard(c4.board);
       result = c4.isWin(valid, move, turn);
       if (turn == 'X') turn = 'O';
@@ -42,56 +69,74 @@ public class Connect4{
   }
   
   /**
-   * Initializes the board member
+   * Initializes the board and height fields.
    */
   public Connect4(){
-    board = new char[6][7];
-    for (int r = 0; r < 6; r++){
-      for (int c = 0; c < 7; c++){
+    board = new char[ROWS][COLUMNS];
+    for (int r = 0; r < ROWS; r++){
+      for (int c = 0; c < COLUMNS; c++){
         board[r][c] = ' ';
       }
-    } 
+    }
+    height = new int[COLUMNS]; 
   }
   
 
   /**
-   * @throws InputMismatchException only int data type is accepted
-   * @param Scanner s used to get keyboard input
-   * @return int returns the column that the player wants to move to. 
+   * This function gets the user's move.
+   * @param s This class is used to get keyboard input.
+   * @return The column that the player wants to place a checker. 
    */
   private int getMove(Scanner s){
-    int move = s.nextInt();
-    return move;
+    int move = 0;
+    try{
+      move = s.nextInt();
+    }
+    catch (InputMismatchException e){
+      s.nextLine();
+      return 0;
+    }
+    finally{
+      return move;
+    }
   }
-  
   /**
-   * @param int row row to place piece on checker board
-   * @param int column column to place piece on checker board
-   * @param char turn represents the player
+   * This function gets the game mode from the user.
+   * @param s This class is used to get keyboard input.
+   * @return The game mode. 'C'=play computer, 'P'=play player
    */
-  private void placePiece(int row, int column, char turn){
-    board[row-1][column-1] = turn;
+  private char getGameMode(Scanner s){
+    String mode = s.nextLine();
+    if (mode.length() == 0) return 'a';
+    return mode.charAt(0);
+  }
+  /**
+   * This function places a checker on the checker board
+   * @param column The column to place a checker on the checker board.
+   * @param turn represents the player.
+   */
+  private void placePiece(int column, char turn){
+    height[column-1] += 1;
+    board[height[column-1]-1][column-1] = turn;
   }
 
   /**
-   * @param column represents the column the player wants to play
-   * @return int returns the row that corresponds to the column or 0 for bad move.
+   * This function determines if a move is valid.
+   * @param column represents the column the player wants to place a checker.
+   * @return The row that the checker would be place or 0 if it is an invalid move.
    */
-  private int validMove(int column){
+  public int validMove(int column){
     column -= 1;
-    if (column < 0 || column >= 7) return 0;
-    int row = 0;
-    while (board[row][column] != ' '){
-      row++;
-      if (row >5) return 0;
-    }
-    return row + 1;
+    if (column < 0 || column >= COLUMNS) return 0;
+    if (height[column] >= ROWS) return 0;
+    return height[column]+1;
   }
   /**
-   * @param int row the row played
-   * @param int column the column played
-   * @param char turn represents the player
-   * @return the game status 0 still playing 1 playerX wins 2 playerO wins 3 tie
+   * This function determines the state of the game.
+   * @param row The row played.
+   * @param column The column played.
+   * @param turn Represents the player.
+   * @return The game status: 0=still playing, 1=playerX wins, 2=playerO wins, 3=tie
    */
   private int isWin(int row, int column, char turn){
     row -= 1;
@@ -107,7 +152,7 @@ public class Connect4{
       else break;
     }
     c = column + 1;
-    while(c <= 6){
+    while(c < COLUMNS){
       if (board[row][c] == turn){
         total += 1;
         c += 1;
@@ -122,7 +167,7 @@ public class Connect4{
     int r = row + 1;
     c = column - 1;
     total = 1;
-    while(c >= 0 && r <= 5){
+    while(c >= 0 && r < ROWS){
       if (board[r][c] == turn){
         total += 1;
         c -= 1;
@@ -132,7 +177,7 @@ public class Connect4{
     }
     c = column + 1;
     r = row - 1;
-    while(c <= 6 && r >= 0){
+    while(c < COLUMNS && r >= 0){
       if (board[r][c] == turn){
         total += 1;
         c += 1;
@@ -155,7 +200,7 @@ public class Connect4{
       else break;
     }
     r = row + 1;
-    while(r <= 5){
+    while(r < ROWS){
       if (board[r][column] == turn){
         total += 1;
         r += 1;
@@ -180,7 +225,7 @@ public class Connect4{
     }
     c = column + 1;
     r = row + 1;
-    while(c <= 6 && r <= 5){
+    while(c < COLUMNS && r < ROWS){
       if (board[r][c] == turn){
         total += 1;
         c += 1;
@@ -193,10 +238,8 @@ public class Connect4{
       else return 2;
     }
     //check full
-    for (r = 0; r < 6; r++){
-      for (c = 0; c < 7; c++){
-        if (board[r][c] == ' ') return 0;//still playing
-      }
+    for (c = 0; c < COLUMNS; c++){
+      if (height[c] < ROWS) return 0; //still playing
     }
     return 3; //tie
   }
