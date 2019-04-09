@@ -1,10 +1,18 @@
+import java.util.Scanner;
+import java.util.InputMismatchException;
+import javafx.application.Application;
+import javafx.stage.Stage;
+import javafx.application.Platform;
+import java.io.IOException;
+import java.io.FileWriter;
+import java.io.FileReader;
+import java.lang.Thread;
+import java.util.concurrent.TimeUnit;
 /**
  * The Connect4 class is the logic for the Connect4 game.
  * @author Marcus Miller
- * @version 2
+ * @version 3
  */
-import java.util.Scanner;
-import java.util.InputMismatchException;
 public class Connect4{
   /**
    * board represents the Connect4 board
@@ -13,7 +21,7 @@ public class Connect4{
   /**
    * height represents the current height of each column
    */
-  public int [] height;
+  public int [] heights;
   /**
    * COLUMNS is the number of columns on the Checker board.
    */
@@ -22,50 +30,195 @@ public class Connect4{
    * ROWS is the number of rows on the Checker board.
    */
   public static int ROWS = 6;
+
+
   /**
-   * Runs a two player text console Connect4 game with two modes.
+   * Runs a two player Connect4 game with two modes.
    * You can play another player or a computer.
+   * You can chose between a GUI or console output.
    */
   public static void main(String[] args){
     Connect4 c4 = new Connect4();
     Connect4TextConsole display = new Connect4TextConsole();
     Connect4ComputerPlayer computer = new Connect4ComputerPlayer();
     Scanner s = new Scanner(System.in);
-    display.displayBoard(c4.board);
+    display.displayGetDisplay();
+    char displayMode = 'a';
+    while (!(displayMode == 'G' || displayMode == 'T')){ 
+      displayMode = c4.getDisplayMode(s);
+      if (!(displayMode == 'G' || displayMode == 'T')){
+        display.displayWrongDisplay();
+      }
+    }
     display.displayStart();
-    char mode = 'a';
+    char mode = 'a';//invalid mode
     while (!(mode == 'C' || mode == 'P')){ 
       mode = c4.getGameMode(s);
       if (!(mode == 'C' || mode == 'P')){
         display.displayWrongMode();
       }
     }
-    display.displayStart2(mode);
+    if (displayMode == 'G'){
+      try{
+	FileWriter fileWriter = new FileWriter("data.txt");
+        fileWriter.write(0);//clear gui user input
+	fileWriter.close();
+      }
+      catch(IOException ex){
+        System.out.println("Error writing to 'data.txt'");
+      }
+      try{
+	FileWriter fileWriter = new FileWriter("board.txt");
+        fileWriter.write("                                          ");
+	fileWriter.close();//the line above is the representation of 
+	// the empty board.
+      }
+      catch(IOException ex){
+        System.out.println("Error writing to 'board.txt'");
+      }
+      Runnable runnable = ()->{
+        Application.launch(Connect4GUI.class);
+        Platform.setImplicitExit(true);
+      };
+      Thread thread = new Thread(runnable);
+      thread.start();
+    }
+    else{
+      display.displayBoard(c4.board);
+      display.displayStart2(mode);
+    }
     char turn = 'X';
-    int move;
+    int move=0;
     int result = 0; //0=still playing, 1=player X wins, 2=player O wins, 3=tie
     int valid; //0=not valid move, 1-6= valid and the number represents the row
     while (result == 0){
-      display.displayPlayerTurn(turn);
-      if (mode == 'C' && turn == 'O'){
-        move = computer.getMove(c4.board);
-        display.displayMove(move);
+      if (displayMode == 'G'){
+        try{
+	  FileWriter fileWriter = new FileWriter("message.txt");
+	  if (turn == 'X'){
+            fileWriter.write("Black's turn.");
+	  }
+	  else{
+            fileWriter.write("Red's turn.");
+	  }
+	  fileWriter.close();
+        }
+        catch(IOException ex){
+          System.out.println("Error writing to 'message.txt'");
+        }
       }
       else{
-	move = c4.getMove(s);
+        display.displayPlayerTurn(turn);
+      }
+      if (mode == 'C' && turn == 'O'){
+        move = computer.getMove(c4.board);
+	if (displayMode == 'G'){
+
+	}
+	else{
+          display.displayMove(move);//console
+	}
+      }
+      else{
+	if (displayMode == 'G'){
+	  move = 0;
+          while(move == 0){
+	    try{
+              FileReader fileReader = new FileReader("data.txt");
+              move = fileReader.read();
+	      fileReader.close();
+            }
+	    catch(IOException ex){
+              System.out.println("Error reading from 'data.txt'");
+	    }
+	    try{
+	      Thread.sleep(100);
+	    }
+	    catch(InterruptedException ex){
+              Thread.currentThread().interrupt();
+	    }
+	    
+	  }
+	}
+	else{
+	  move = c4.getMove(s);//console
+	}
       }
       valid = c4.validMove(move);
-      if (valid == 0){
-        display.invalidMove();
+      if (valid == 0){//invalid move
+	if (displayMode == 'G'){
+          try{
+	    FileWriter fileWriter = new FileWriter("message.txt");
+	    if (turn == 'X'){
+              fileWriter.write("Black invalid move.");
+	    }
+	    else{
+              fileWriter.write("Red invalid move.");
+	    }
+	    fileWriter.close();
+          }
+          catch(IOException ex){
+            System.out.println("Error writing to 'message.txt'");
+          }
+	}
+	else{
+          display.invalidMove();//console
+	}
         continue;
       }
       c4.placePiece(move, turn);
-      display.displayBoard(c4.board);
+      if (displayMode == 'G'){
+        try{
+	  FileWriter fileWriter = new FileWriter("data.txt");
+          fileWriter.write(0);//clear gui user input
+	  fileWriter.close();
+        }
+        catch(IOException ex){
+          System.out.println("Error writing to 'data.txt'");
+        }
+        try{
+	  FileWriter fileWriter = new FileWriter("board.txt");
+	  StringBuilder sb = new StringBuilder();
+	  for (int r = 0; r < ROWS; r++){
+            for (int c = 0; c < COLUMNS; c++){
+              sb.append(c4.board[r][c]);
+	    }
+	  }
+	  fileWriter.write(sb.toString());
+	  fileWriter.close();
+	}
+	catch(IOException ex){
+          System.out.println("Error writing to 'board.txt'");
+	}
+      }
+      else{
+        display.displayBoard(c4.board);//console
+      }
       result = c4.isWin(valid, move, turn);
       if (turn == 'X') turn = 'O';
       else turn = 'X';
     }
-    display.displayWinner(result);
+    if (displayMode == 'G'){
+      try{
+	FileWriter fileWriter = new FileWriter("message.txt");
+	if (result == 1){
+          fileWriter.write("Black Wins!");
+	}
+	else if (result == 2){
+          fileWriter.write("Red Wins!");
+	}
+	else{
+          fileWriter.write("Tie Game!");
+	}
+	fileWriter.close();
+      }
+      catch(IOException ex){
+        System.out.println("Error writing to 'message.txt'");
+      }
+    }
+    else{
+      display.displayWinner(result);//console
+    }
   }
   
   /**
@@ -78,7 +231,7 @@ public class Connect4{
         board[r][c] = ' ';
       }
     }
-    height = new int[COLUMNS]; 
+    heights = new int[COLUMNS]; 
   }
   
 
@@ -111,13 +264,23 @@ public class Connect4{
     return mode.charAt(0);
   }
   /**
+   * This function gets the display mode from the user.
+   * @param s This class is used to get keyboard input.
+   * @return The Display mode. 'G'==GUI, 'T'=text console
+   */
+  private char getDisplayMode(Scanner s){
+    String mode = s.nextLine();
+    if (mode.length() == 0) return 'a';
+    return mode.charAt(0);
+  }
+  /**
    * This function places a checker on the checker board
    * @param column The column to place a checker on the checker board.
    * @param turn represents the player.
    */
   private void placePiece(int column, char turn){
-    height[column-1] += 1;
-    board[height[column-1]-1][column-1] = turn;
+    heights[column-1] += 1;
+    board[heights[column-1]-1][column-1] = turn;
   }
 
   /**
@@ -128,8 +291,8 @@ public class Connect4{
   public int validMove(int column){
     column -= 1;
     if (column < 0 || column >= COLUMNS) return 0;
-    if (height[column] >= ROWS) return 0;
-    return height[column]+1;
+    if (heights[column] >= ROWS) return 0;
+    return heights[column]+1;
   }
   /**
    * This function determines the state of the game.
@@ -239,7 +402,7 @@ public class Connect4{
     }
     //check full
     for (c = 0; c < COLUMNS; c++){
-      if (height[c] < ROWS) return 0; //still playing
+      if (heights[c] < ROWS) return 0; //still playing
     }
     return 3; //tie
   }

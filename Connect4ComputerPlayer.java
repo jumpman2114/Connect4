@@ -1,7 +1,7 @@
 import java.util.concurrent.ThreadLocalRandom;
 /**
  * This class is a computer player for the Connect4 class.
- * @auther Marcus Miller
+ * @author Marcus Miller
  * @version 1
  */
 public class Connect4ComputerPlayer{

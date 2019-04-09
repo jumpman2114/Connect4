@@ -1,21 +1,39 @@
+
+import java.lang.StringBuilder;
 /**
  * The Connect4 console output for the Connect4 class.
  * @author Marcus Miller
  * @version 2
  */
-
-import java.lang.StringBuilder;
-
 public class Connect4TextConsole{
   /**
-   * This function prints the first message of the game.
-   * @return The first message of the game.
+   * This function prints the get game mode message of the game.
+   * @return The game mode message of the game.
    */
   public String displayStart(){
-    String s = "Begin Game. Enter 'P' if you want to play against another player; enter 'C' to play against computer.\n";
+    String s = "Enter 'P' if you want to play against another player; enter 'C' to play against computer.\n";
     System.out.print(s);
     return s;
   }
+  /**
+   * This function prints a get display mode message.
+   * @return The get display mode message.
+   */
+  public String displayGetDisplay(){
+    String s = "Begin Game. Enter 'G' if you want a GUI display; enter 'T' to have a text console.\n";
+    System.out.print(s);
+    return s;
+  } 
+  /**
+   * This function prints an invalid display mode message.
+   * @return The invalid display mode message.
+   */
+  public String displayWrongDisplay(){
+    String s = "Invalid! Enter 'G' if you want a GUI display; enter 'T' to have a text console.\n";
+    System.out.print(s);
+    return s;
+  } 
+
   /**
    * This function displays the computers move.
    * @param move The move that the computer made.
