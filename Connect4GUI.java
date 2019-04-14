@@ -17,10 +17,13 @@ import javafx.scene.text.Text;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
-import java.io.FileWriter;
-import java.io.FileReader;
 import java.io.IOException;
-import javafx.animation.AnimationTimer;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.net.ServerSocket;
+import javafx.application.Platform;
+import java.lang.Integer;
 /**
  * This class is a GUI for Connect4
  * @author Marcus Miller
@@ -43,6 +46,10 @@ public class Connect4GUI extends Application{
    * The original width of the stage
    */ 
   private int WIDTH = 300;
+  private ObjectInputStream in;
+  private ObjectOutputStream out;
+  private Thread thread;
+  private boolean running;
   /**
    * This function controls how the GUI works
    * @param primaryStage the stage for the window
@@ -50,6 +57,8 @@ public class Connect4GUI extends Application{
    */  
   @Override
   public void start(Stage primaryStage) throws Exception{
+	  
+		    
     GridPane mainPane = new GridPane();
     GridPane gridPane = new GridPane();
     mainPane.setHgap(0);
@@ -74,9 +83,11 @@ public class Connect4GUI extends Application{
     mainPane.getColumnConstraints().add(c1Constraint);
     ColumnConstraints c2Constraint = new ColumnConstraints();
     c2Constraint.setPercentWidth(5);
+    
     mainPane.getColumnConstraints().add(c2Constraint);
     mainPane.add(gridPane,1,0);
     mainPane.add(message,1,1);
+    
     mainPane.setValignment(gridPane,VPos.CENTER);
     mainPane.setValignment(message,VPos.CENTER);
     mainPane.setHalignment(gridPane,HPos.CENTER);
@@ -106,148 +117,7 @@ public class Connect4GUI extends Application{
 	  columns[c].setValignment(circle,VPos.CENTER);
           columns[c].add(circle,0,r);
       }
-    }         
-    EventHandler<MouseEvent> eventHandler0 = new 
-	EventHandler<MouseEvent>(){
-	@Override
-	public void handle(MouseEvent e){
-      try{
-        FileWriter fileWriter = 
-        new FileWriter("data.txt");
-        fileWriter.write(1);
-        fileWriter.close();
-      }
-      catch(IOException ex){
-        System.out.println("Error writing to 'data.txt' from column1"); 
-      }	
-    }};
-    columns[0].addEventFilter(MouseEvent.MOUSE_CLICKED,
-			     eventHandler0);
-
-    EventHandler<MouseEvent> eventHandler1 = new 
-  	  EventHandler<MouseEvent>(){
-	  @Override
-	  public void handle(MouseEvent e){
-      try{
-        FileWriter fileWriter = 
-        new FileWriter("data.txt");
-        fileWriter.write(2);
-        fileWriter.close();
-      }
-      catch(IOException ex){
-        System.out.println("Error writing to 'data.txt' from column2");
-      }
-    }};
-    columns[1].addEventFilter(MouseEvent.MOUSE_CLICKED,
-			     eventHandler1);
-    EventHandler<MouseEvent> eventHandler2 = new 
-	EventHandler<MouseEvent>(){
-	@Override
-	public void handle(MouseEvent e){
-      try{
-        FileWriter fileWriter = new FileWriter("data.txt");
-        fileWriter.write(3);
-        fileWriter.close();
-      }
-      catch(IOException ex){
-        System.out.println("Error writing to 'data.txt' from column3");
-      }
-    }};
-    columns[2].addEventFilter(MouseEvent.MOUSE_CLICKED,
-			     eventHandler2);
-    EventHandler<MouseEvent> eventHandler3 = new 
-  	EventHandler<MouseEvent>(){
-	@Override
-	public void handle(MouseEvent e){
-      try{
-        FileWriter fileWriter = new FileWriter("data.txt");
-        fileWriter.write(4);
-        fileWriter.close();
-      }
-      catch(IOException ex){
-        System.out.println("Error writing to 'data.txt' from column4");
-      }
-    }};
-    columns[3].addEventFilter(MouseEvent.MOUSE_CLICKED,
- 			     eventHandler3);
-    EventHandler<MouseEvent> eventHandler4 = new 
-        EventHandler<MouseEvent>(){
-	@Override
-	public void handle(MouseEvent e){
-      try{
-        FileWriter fileWriter = new FileWriter("data.txt");
-        fileWriter.write(5);
-        fileWriter.close();
-      }
-      catch(IOException ex){
-        System.out.println("Error writing to 'data.txt' from column5");
-      }
-    }};
-    columns[4].addEventFilter(MouseEvent.MOUSE_CLICKED,
-			     eventHandler4);
-    EventHandler<MouseEvent> eventHandler5 = new 
-	EventHandler<MouseEvent>(){
-	@Override
-	public void handle(MouseEvent e){
-      try{
-        FileWriter fileWriter = new FileWriter("data.txt");
-        fileWriter.write(6);
-        fileWriter.close();
-      }
-      catch(IOException ex){
-        System.out.println("Error writing to 'data.txt' from column6");
-      }
-    }};
-    columns[5].addEventFilter(MouseEvent.MOUSE_CLICKED,
-			     eventHandler5);
-    EventHandler<MouseEvent> eventHandler6 = new 
-	EventHandler<MouseEvent>(){
-	@Override
-	public void handle(MouseEvent e){
-      try{
-        FileWriter fileWriter = new FileWriter("data.txt");
-        fileWriter.write(7);
-        fileWriter.close();
-      }
-      catch(IOException ex){
-        System.out.println("Error writing to 'data.txt' from column7");
-      }
-    }};
-    columns[6].addEventFilter(MouseEvent.MOUSE_CLICKED,
-			     eventHandler6);
-    new AnimationTimer(){
-	@Override
-	public void handle(long now){
-      try{
-        FileReader fileReader = new FileReader("message.txt");
-        StringBuilder sb = new StringBuilder();
-        int c;
-        while((c=fileReader.read())!=-1){
-          sb.append((char)c);
-        }
-        fileReader.close();
-        message.setText(sb.toString());
-        fileReader = new FileReader("board.txt");
-        for(int r = 0; r<ROWS;r++){
-          for(int col = 0; col < COLUMNS; col++){
-	    c = fileReader.read();
-            if ((char)c == ' '){
-              circles[r][col].setFill(Color.BLUE);
-	    }
-	    else if ((char)c == 'X'){
-	      circles[r][col].setFill(Color.BLACK);
-	    }
-	    else{
-	      circles[r][col].setFill(Color.RED);
-	    }
-          }
-        }
-        fileReader.close();
-      }
-      catch(IOException ex){
-        System.out.println("Error reading 'message.txt' or 'board.txt'");
-      }
-    }}.start();
+    }        
   
     Group root = new Group(mainPane);
     Scene scene = new Scene(root,WIDTH,HEIGHT);
@@ -276,7 +146,221 @@ public class Connect4GUI extends Application{
     primaryStage.setScene(scene);
     primaryStage.sizeToScene();
     primaryStage.show();
+    
+
+
+    EventHandler<MouseEvent> eventHandler0 = new 
+        EventHandler<MouseEvent>(){
+      @Override
+      public void handle(MouseEvent e){
+        try{
+          out.writeObject(1);
+	}
+	catch(Exception ex){
+          System.out.println("Error");
+	  
+	}
+      }  	
+    };
+    columns[0].addEventFilter(MouseEvent.MOUSE_CLICKED,
+			     eventHandler0);
+
+    EventHandler<MouseEvent> eventHandler1 = new 
+        EventHandler<MouseEvent>(){
+      @Override
+      public void handle(MouseEvent e){
+        try{
+          out.writeObject(2);
+	}
+	catch(Exception ex){
+          System.out.println("Error");
+	}
+      }  	
+    };
+    columns[1].addEventFilter(MouseEvent.MOUSE_CLICKED,
+			     eventHandler1);
+
+    EventHandler<MouseEvent> eventHandler2 = new 
+        EventHandler<MouseEvent>(){
+      @Override
+      public void handle(MouseEvent e){
+        try{
+          out.writeObject(3);
+	}
+	catch(Exception ex){
+          System.out.println("Error");
+	}
+      }  	
+    };
+    columns[2].addEventFilter(MouseEvent.MOUSE_CLICKED,
+			     eventHandler2);
+
+    EventHandler<MouseEvent> eventHandler3 = new 
+        EventHandler<MouseEvent>(){
+      @Override
+      public void handle(MouseEvent e){
+        try{
+          out.writeObject(4);
+	}
+	catch(Exception ex){
+          System.out.println("Error");
+	}
+      }  	
+    };
+    columns[3].addEventFilter(MouseEvent.MOUSE_CLICKED,
+			     eventHandler3);
+
+    EventHandler<MouseEvent> eventHandler4 = new 
+        EventHandler<MouseEvent>(){
+      @Override
+      public void handle(MouseEvent e){
+        try{
+          out.writeObject(5);
+	}
+	catch(Exception ex){
+          System.out.println("Error");
+	}
+      }  	
+    };
+    columns[4].addEventFilter(MouseEvent.MOUSE_CLICKED,
+			     eventHandler4);
+
+    EventHandler<MouseEvent> eventHandler5 = new 
+        EventHandler<MouseEvent>(){
+      @Override
+      public void handle(MouseEvent e){
+        try{
+          out.writeObject(6);
+	}
+	catch(Exception ex){
+          System.out.println("Error");
+	}
+      }  	
+    };
+    columns[5].addEventFilter(MouseEvent.MOUSE_CLICKED,
+			     eventHandler5);
+
+    EventHandler<MouseEvent> eventHandler6 = new 
+        EventHandler<MouseEvent>(){
+      @Override
+      public void handle(MouseEvent e){
+        try{
+          out.writeObject(7);
+	}
+	catch(Exception ex){
+          System.out.println("Error");
+	}
+      }  	
+    };
+    columns[6].addEventFilter(MouseEvent.MOUSE_CLICKED,
+			     eventHandler6);
+    thread = new Thread(() ->{
+      int port =8000;
+      String host = "localhost";
+      Socket socket;
+      try{
+        socket = new Socket(host, port);
+        out = new ObjectOutputStream(
+		    socket.getOutputStream());
+        in = new ObjectInputStream(
+		    socket.getInputStream());
+      }
+      catch(Exception ex){
+        System.out.println("Error setting up socket");
+      }
+      char c = ' ';
+      char[][] board= null;
+      String text="";
+      Object obj = null;
+      running = true;
+      while(running){
+        try{
+          obj = in.readObject();
+        }
+        catch(Exception ex){
+          System.out.println("Error reading object");
+        }
+         
+        if (obj instanceof char[][]){
+	  board = (char[][]) obj;
+          for(int r = 0; r<ROWS;r++){
+            for(int col = 0; col < COLUMNS; col++){
+              c = board[r][col];
+              if (c == ' '){
+                circles[r][col].setFill(Color.BLUE);
+	      }
+	      else if (c == 'X'){
+	        circles[r][col].setFill(Color.BLACK);
+	      }
+	      else{
+	        circles[r][col].setFill(Color.RED);
+	      }
+            }
+          }
+        }
+        else if (obj instanceof String){
+	  text = (String) obj;
+          message.setText(text);
+	  if (text.equals("Black Wins!") || text.equals("Red Wins!") ||
+			  text.equals("Tie Game!") ){
+            break;  
+	  }
+        }
+	else{
+          System.out.println("Not a String or char[][] type");
+	}
+      }
+      try{
+	columns[0].removeEventFilter(MouseEvent.MOUSE_CLICKED,
+		       	eventHandler0);
+	columns[1].removeEventFilter(MouseEvent.MOUSE_CLICKED,
+		       	eventHandler1);
+	columns[2].removeEventFilter(MouseEvent.MOUSE_CLICKED,
+		       	eventHandler2);
+	columns[3].removeEventFilter(MouseEvent.MOUSE_CLICKED,
+		       	eventHandler3);
+	columns[4].removeEventFilter(MouseEvent.MOUSE_CLICKED,
+		       	eventHandler4);
+	columns[5].removeEventFilter(MouseEvent.MOUSE_CLICKED,
+		       	eventHandler5);
+	columns[6].removeEventFilter(MouseEvent.MOUSE_CLICKED,
+		       	eventHandler6);
+        out.close();
+	in.close();
+      }
+      catch(Exception ex){
+        System.out.println("Error closing streams");
+	Platform.exit();
+      }
+    });
+    thread.start();
+    primaryStage.setOnCloseRequest(e -> {
+      running = false;
+      try{
+	columns[0].removeEventFilter(MouseEvent.MOUSE_CLICKED,
+		       	eventHandler0);
+	columns[1].removeEventFilter(MouseEvent.MOUSE_CLICKED,
+		       	eventHandler1);
+	columns[2].removeEventFilter(MouseEvent.MOUSE_CLICKED,
+		       	eventHandler2);
+	columns[3].removeEventFilter(MouseEvent.MOUSE_CLICKED,
+		       	eventHandler3);
+	columns[4].removeEventFilter(MouseEvent.MOUSE_CLICKED,
+		       	eventHandler4);
+	columns[5].removeEventFilter(MouseEvent.MOUSE_CLICKED,
+		       	eventHandler5);
+	columns[6].removeEventFilter(MouseEvent.MOUSE_CLICKED,
+		       	eventHandler6);
+        out.close();
+	in.close();
+      }
+      catch(Exception ex){
+        System.out.println("Error closing streams");
+	Platform.exit();
+      }
+    });
   }
+
   /**
    * This function launches a GUI window.
    * @param args command line arguments.

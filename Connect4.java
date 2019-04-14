@@ -4,10 +4,13 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.application.Platform;
 import java.io.IOException;
-import java.io.FileWriter;
-import java.io.FileReader;
 import java.lang.Thread;
-import java.util.concurrent.TimeUnit;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 /**
  * The Connect4 class is the logic for the Connect4 game.
  * @author Marcus Miller
@@ -30,6 +33,10 @@ public class Connect4{
    * ROWS is the number of rows on the Checker board.
    */
   public static int ROWS = 6;
+  private ObjectInputStream in1;
+  private ObjectOutputStream out1;
+  private ServerSocket server;
+  private Socket socket1;
 
 
   /**
@@ -37,11 +44,12 @@ public class Connect4{
    * You can play another player or a computer.
    * You can chose between a GUI or console output.
    */
-  public static void main(String[] args){
+  public static void main(String[] args) throws Exception{
     Connect4 c4 = new Connect4();
     Connect4TextConsole display = new Connect4TextConsole();
     Connect4ComputerPlayer computer = new Connect4ComputerPlayer();
     Scanner s = new Scanner(System.in);
+    int port = 8000;
     display.displayGetDisplay();
     char displayMode = 'a';
     while (!(displayMode == 'G' || displayMode == 'T')){ 
@@ -58,166 +66,137 @@ public class Connect4{
         display.displayWrongMode();
       }
     }
-    if (displayMode == 'G'){
-      try{
-	FileWriter fileWriter = new FileWriter("data.txt");
-        fileWriter.write(0);//clear gui user input
-	fileWriter.close();
-      }
-      catch(IOException ex){
-        System.out.println("Error writing to 'data.txt'");
-      }
-      try{
-	FileWriter fileWriter = new FileWriter("board.txt");
-        fileWriter.write("                                          ");
-	fileWriter.close();//the line above is the representation of 
-	// the empty board.
-      }
-      catch(IOException ex){
-        System.out.println("Error writing to 'board.txt'");
-      }
-      Runnable runnable = ()->{
-        Application.launch(Connect4GUI.class);
-        Platform.setImplicitExit(true);
-      };
-      Thread thread = new Thread(runnable);
-      thread.start();
-    }
-    else{
+    if (displayMode == 'T'){
       display.displayBoard(c4.board);
       display.displayStart2(mode);
+    }    
+    Runnable runnable = ()->{
+      Application.launch(Connect4GUI.class);
+      Platform.setImplicitExit(true);
+    };
+    Thread thread = new Thread(runnable);
+    if (displayMode == 'G'){
+      thread.start();
+      try{
+          c4.server = new ServerSocket(port);
+          c4.socket1=c4.server.accept();
+          c4.out1 = new ObjectOutputStream(c4.socket1.getOutputStream());
+          c4.in1 = new ObjectInputStream(c4.socket1.getInputStream());
+      }
+      catch(Exception ex){
+          System.out.println("Error setting up Server socket.");
+      }
     }
+    
+      
+    
     char turn = 'X';
     int move=0;
     int result = 0; //0=still playing, 1=player X wins, 2=player O wins, 3=tie
-    int valid; //0=not valid move, 1-6= valid and the number represents the row
+    int valid=1; //0=not valid move, 1-6= valid and the number represents the row
+    //main loop
     while (result == 0){
+      //display message
       if (displayMode == 'G'){
-        try{
-	  FileWriter fileWriter = new FileWriter("message.txt");
-	  if (turn == 'X'){
-            fileWriter.write("Black's turn.");
+	try{
+	  if (turn == 'X' && valid != 0){
+            c4.out1.writeObject("Black's turn.");
+	  }
+	  else if (turn == 'X' && valid == 0){
+            c4.out1.writeObject("Black invalid move. Black's turn.");
+	  }
+	  else if (turn == 'O' && valid != 0){
+            c4.out1.writeObject("Red's turn.");
 	  }
 	  else{
-            fileWriter.write("Red's turn.");
+            c4.out1.writeObject("Red invalid move. Red's turn.");
 	  }
-	  fileWriter.close();
-        }
-        catch(IOException ex){
-          System.out.println("Error writing to 'message.txt'");
-        }
-      }
+	}
+	catch(Exception ex){
+          System.out.println("Error displaying message");
+	  break;
+	}
+      }	
       else{
         display.displayPlayerTurn(turn);
-      }
-      if (mode == 'C' && turn == 'O'){
-        move = computer.getMove(c4.board);
-	if (displayMode == 'G'){
-
+	if (valid == 0){
+          display.invalidMove();//console
 	}
-	else{
+      }
+
+      //get move
+      if (mode == 'C' && turn == 'O'){//get computer move
+        move = computer.getMove(c4.board);
+	if (displayMode == 'T'){
           display.displayMove(move);//console
 	}
       }
-      else{
+      else{// get player move
 	if (displayMode == 'G'){
-	  move = 0;
-          while(move == 0){
-	    try{
-              FileReader fileReader = new FileReader("data.txt");
-              move = fileReader.read();
-	      fileReader.close();
-            }
-	    catch(IOException ex){
-              System.out.println("Error reading from 'data.txt'");
-	    }
-	    try{
-	      Thread.sleep(100);
-	    }
-	    catch(InterruptedException ex){
-              Thread.currentThread().interrupt();
-	    }
-	    
+	  try{
+            move = (int) c4.in1.readObject();
+	  }
+	  catch(Exception ex){
+            System.out.println("Error reading player move");
+	    break;
 	  }
 	}
 	else{
 	  move = c4.getMove(s);//console
 	}
       }
+      
+      //check move
       valid = c4.validMove(move);
       if (valid == 0){//invalid move
-	if (displayMode == 'G'){
-          try{
-	    FileWriter fileWriter = new FileWriter("message.txt");
-	    if (turn == 'X'){
-              fileWriter.write("Black invalid move.");
-	    }
-	    else{
-              fileWriter.write("Red invalid move.");
-	    }
-	    fileWriter.close();
-          }
-          catch(IOException ex){
-            System.out.println("Error writing to 'message.txt'");
-          }
-	}
-	else{
-          display.invalidMove();//console
-	}
         continue;
       }
+
+      //place move
       c4.placePiece(move, turn);
       if (displayMode == 'G'){
         try{
-	  FileWriter fileWriter = new FileWriter("data.txt");
-          fileWriter.write(0);//clear gui user input
-	  fileWriter.close();
-        }
-        catch(IOException ex){
-          System.out.println("Error writing to 'data.txt'");
-        }
-        try{
-	  FileWriter fileWriter = new FileWriter("board.txt");
-	  StringBuilder sb = new StringBuilder();
-	  for (int r = 0; r < ROWS; r++){
-            for (int c = 0; c < COLUMNS; c++){
-              sb.append(c4.board[r][c]);
-	    }
-	  }
-	  fileWriter.write(sb.toString());
-	  fileWriter.close();
+	  c4.out1.reset();
+	  c4.out1.writeObject(c4.board);
 	}
-	catch(IOException ex){
-          System.out.println("Error writing to 'board.txt'");
+	catch(Exception ex){
+          System.out.println("Error writing board to GUI");
+	  break;
 	}
       }
       else{
         display.displayBoard(c4.board);//console
       }
+
+      //get current game state
       result = c4.isWin(valid, move, turn);
       if (turn == 'X') turn = 'O';
       else turn = 'X';
     }
+    //end of main loop
+
     if (displayMode == 'G'){
       try{
-	FileWriter fileWriter = new FileWriter("message.txt");
-	if (result == 1){
-          fileWriter.write("Black Wins!");
-	}
-	else if (result == 2){
-          fileWriter.write("Red Wins!");
-	}
-	else{
-          fileWriter.write("Tie Game!");
-	}
-	fileWriter.close();
+        if (result == 1){
+          c4.out1.writeObject("Black Wins!");
+        }
+        else if (result == 2){
+          c4.out1.writeObject("Red Wins!");
+        }
+        else{
+          c4.out1.writeObject("Tie Game!");
+        }
       }
-      catch(IOException ex){
-        System.out.println("Error writing to 'message.txt'");
+      catch (Exception ex){
+        System.out.println("Error writing winner to GUI");
       }
     }
     else{
       display.displayWinner(result);//console
+    }
+    if (displayMode == 'G'){
+      c4.out1.close();
+      c4.in1.close();
     }
   }
   
