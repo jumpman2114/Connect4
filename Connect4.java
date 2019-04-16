@@ -14,7 +14,7 @@ import java.io.FileOutputStream;
 /**
  * The Connect4 class is the logic for the Connect4 game.
  * @author Marcus Miller
- * @version 3
+ * @version 4
  */
 public class Connect4{
   /**
@@ -33,177 +33,163 @@ public class Connect4{
    * ROWS is the number of rows on the Checker board.
    */
   public static int ROWS = 6;
-  private ObjectInputStream in1;
-  private ObjectOutputStream out1;
-  private ServerSocket server;
-  private Socket socket1;
-
+  private ObjectInputStream in1;/**input from player 1*/
+  private ObjectOutputStream out1;/**output from player 1*/
+  private ObjectInputStream in2;/**input from player 2*/
+  private ObjectOutputStream out2;/**output from player2*/
+  private Socket socket1;/**player 1 socket*/
+  private Socket socket2;/**player 2 socket*/
+  private int numPlayers;/**number of human players*/
 
   /**
    * Runs a two player Connect4 game with two modes.
    * You can play another player or a computer.
    * You can chose between a GUI or console output.
    */
-  public static void main(String[] args) throws Exception{
-    Connect4 c4 = new Connect4();
-    Connect4TextConsole display = new Connect4TextConsole();
+  public void startGame() throws Exception{
     Connect4ComputerPlayer computer = new Connect4ComputerPlayer();
-    Scanner s = new Scanner(System.in);
-    int port = 8000;
-    display.displayGetDisplay();
-    char displayMode = 'a';
-    while (!(displayMode == 'G' || displayMode == 'T')){ 
-      displayMode = c4.getDisplayMode(s);
-      if (!(displayMode == 'G' || displayMode == 'T')){
-        display.displayWrongDisplay();
-      }
-    }
-    display.displayStart();
-    char mode = 'a';//invalid mode
-    while (!(mode == 'C' || mode == 'P')){ 
-      mode = c4.getGameMode(s);
-      if (!(mode == 'C' || mode == 'P')){
-        display.displayWrongMode();
-      }
-    }
-    if (displayMode == 'T'){
-      display.displayBoard(c4.board);
-      display.displayStart2(mode);
-    }    
-    Runnable runnable = ()->{
-      Application.launch(Connect4GUI.class);
-      Platform.setImplicitExit(true);
-    };
-    Thread thread = new Thread(runnable);
-    if (displayMode == 'G'){
-      thread.start();
-      try{
-          c4.server = new ServerSocket(port);
-          c4.socket1=c4.server.accept();
-          c4.out1 = new ObjectOutputStream(c4.socket1.getOutputStream());
-          c4.in1 = new ObjectInputStream(c4.socket1.getInputStream());
-      }
-      catch(Exception ex){
-          System.out.println("Error setting up Server socket.");
-      }
-    }
-    
       
-    
+    char mode = 'C';
+    if (numPlayers == 2){
+      mode = 'P';
+    } 
     char turn = 'X';
     int move=0;
     int result = 0; //0=still playing, 1=player X wins, 2=player O wins, 3=tie
     int valid=1; //0=not valid move, 1-6= valid and the number represents the row
     //main loop
     while (result == 0){
-      //display message
-      if (displayMode == 'G'){
-	try{
-	  if (turn == 'X' && valid != 0){
-            c4.out1.writeObject("Black's turn.");
-	  }
-	  else if (turn == 'X' && valid == 0){
-            c4.out1.writeObject("Black invalid move. Black's turn.");
-	  }
-	  else if (turn == 'O' && valid != 0){
-            c4.out1.writeObject("Red's turn.");
-	  }
-	  else{
-            c4.out1.writeObject("Red invalid move. Red's turn.");
+      try{
+        if (turn == 'X' && valid != 0){
+          out1.writeObject("Black's turn.");
+	  if (numPlayers == 2){
+            out2.writeObject("Black's turn.");
 	  }
 	}
-	catch(Exception ex){
-          System.out.println("Error displaying message");
-	  break;
-	}
-      }	
-      else{
-        display.displayPlayerTurn(turn);
-	if (valid == 0){
-          display.invalidMove();//console
-	}
-      }
-
-      //get move
-      if (mode == 'C' && turn == 'O'){//get computer move
-        move = computer.getMove(c4.board);
-	if (displayMode == 'T'){
-          display.displayMove(move);//console
-	}
-      }
-      else{// get player move
-	if (displayMode == 'G'){
-	  try{
-            move = (int) c4.in1.readObject();
+	else if (turn == 'X' && valid == 0){
+          out1.writeObject("Black invalid move. Black's turn.");
+	  if (numPlayers == 2){
+            out2.writeObject("Black invalid move. Black's turn.");
 	  }
-	  catch(Exception ex){
-            System.out.println("Error reading player move");
-	    break;
+	}
+	else if (turn == 'O' && valid != 0){
+          out1.writeObject("Red's turn.");
+	  if (numPlayers == 2){
+            out2.writeObject("Red's turn.");
 	  }
 	}
 	else{
-	  move = c4.getMove(s);//console
+          out1.writeObject("Red invalid move. Red's turn.");
+          if (numPlayers == 2){
+	    out2.writeObject("Red invalid move. Red's turn.");
+	  }
 	}
+      }
+      catch(Exception ex){
+        System.out.println("Error displaying message");
+	break;
+      }	
+
+      //get move
+      if (mode == 'C' && turn == 'O'){//get computer move
+        move = computer.getMove(board);
+      }
+      else{// get player move
+        try{
+	  if (turn == 'X'){
+            move = (int) in1.readObject();
+	  }
+	  else{
+            move = (int) in2.readObject();
+	  }
+	}
+	catch(Exception ex){
+          System.out.println("Error reading player move");
+	  break;
+      	}
       }
       
       //check move
-      valid = c4.validMove(move);
+      valid = validMove(move);
       if (valid == 0){//invalid move
         continue;
       }
 
       //place move
-      c4.placePiece(move, turn);
-      if (displayMode == 'G'){
-        try{
-	  c4.out1.reset();
-	  c4.out1.writeObject(c4.board);
-	}
-	catch(Exception ex){
-          System.out.println("Error writing board to GUI");
-	  break;
+      placePiece(move, turn);
+      try{
+        out1.reset();
+	out1.writeObject(board);
+        if (numPlayers == 2){
+          out2.reset();
+	  out2.writeObject(board);
 	}
       }
-      else{
-        display.displayBoard(c4.board);//console
+      catch(Exception ex){
+        System.out.println("Error writing board to GUI");
+        ex.printStackTrace();
+	break;
       }
 
       //get current game state
-      result = c4.isWin(valid, move, turn);
+      result = isWin(valid, move, turn);
       if (turn == 'X') turn = 'O';
       else turn = 'X';
     }
     //end of main loop
 
-    if (displayMode == 'G'){
-      try{
-        if (result == 1){
-          c4.out1.writeObject("Black Wins!");
-        }
-        else if (result == 2){
-          c4.out1.writeObject("Red Wins!");
-        }
-        else{
-          c4.out1.writeObject("Tie Game!");
-        }
+    try{
+      if (result == 1){
+        out1.writeObject("Black Wins!");
+	if (numPlayers == 2){
+          out2.writeObject("Black Wins!");
+	}
       }
-      catch (Exception ex){
-        System.out.println("Error writing winner to GUI");
+      else if (result == 2){
+        out1.writeObject("Red Wins!");
+	if (numPlayers == 2){
+          out2.writeObject("Red Wins!");
+	}
+      }
+      else{
+        out1.writeObject("Tie Game!");
+	if (numPlayers == 2){
+          out2.writeObject("Tie Game!");
+	}
       }
     }
-    else{
-      display.displayWinner(result);//console
+    catch (Exception ex){
+      System.out.println("Error writing winner to GUI");
+      ex.printStackTrace();
     }
-    if (displayMode == 'G'){
-      c4.out1.close();
-      c4.in1.close();
+    out1.close();
+    in1.close();
+    if (numPlayers == 2){
+      out2.close();
+      in2.close();
     }
   }
   
   /**
    * Initializes the board and height fields.
+   * @param s1 player 1 socket
+   * @param s2 player 2 socket
+   * @param o1 output to player1
+   * @param o2 output to player2
+   * @param i1 input from player1
+   * @param i2 input from player2
+   * @param nPlayers number of human players
    */
-  public Connect4(){
+  public Connect4(Socket s1, Socket s2, ObjectOutputStream o1,
+		  ObjectOutputStream o2, ObjectInputStream i1,
+		  ObjectInputStream i2, int nPlayers){
+    socket1 = s1;
+    socket2 = s2;
+    in1 = i1;
+    in2 = i2;
+    out1 = o1;
+    out2 = o2;
+    numPlayers = nPlayers;
     board = new char[ROWS][COLUMNS];
     for (int r = 0; r < ROWS; r++){
       for (int c = 0; c < COLUMNS; c++){
@@ -214,44 +200,6 @@ public class Connect4{
   }
   
 
-  /**
-   * This function gets the user's move.
-   * @param s This class is used to get keyboard input.
-   * @return The column that the player wants to place a checker. 
-   */
-  private int getMove(Scanner s){
-    int move = 0;
-    try{
-      move = s.nextInt();
-    }
-    catch (InputMismatchException e){
-      s.nextLine();
-      return 0;
-    }
-    finally{
-      return move;
-    }
-  }
-  /**
-   * This function gets the game mode from the user.
-   * @param s This class is used to get keyboard input.
-   * @return The game mode. 'C'=play computer, 'P'=play player
-   */
-  private char getGameMode(Scanner s){
-    String mode = s.nextLine();
-    if (mode.length() == 0) return 'a';
-    return mode.charAt(0);
-  }
-  /**
-   * This function gets the display mode from the user.
-   * @param s This class is used to get keyboard input.
-   * @return The Display mode. 'G'==GUI, 'T'=text console
-   */
-  private char getDisplayMode(Scanner s){
-    String mode = s.nextLine();
-    if (mode.length() == 0) return 'a';
-    return mode.charAt(0);
-  }
   /**
    * This function places a checker on the checker board
    * @param column The column to place a checker on the checker board.

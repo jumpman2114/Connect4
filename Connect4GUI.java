@@ -24,6 +24,7 @@ import java.net.Socket;
 import java.net.ServerSocket;
 import javafx.application.Platform;
 import java.lang.Integer;
+import java.util.List;
 /**
  * This class is a GUI for Connect4
  * @author Marcus Miller
@@ -50,6 +51,7 @@ public class Connect4GUI extends Application{
   private ObjectOutputStream out;
   private Thread thread;
   private boolean running;
+  private static String port;
   /**
    * This function controls how the GUI works
    * @param primaryStage the stage for the window
@@ -68,7 +70,7 @@ public class Connect4GUI extends Application{
     Text message = new Text();
     message.setText(" ");
     message.setFont(Font.font("verdan", FontWeight.BOLD,
-		            FontPosture.REGULAR, .05*HEIGHT));
+		            FontPosture.REGULAR, .03*HEIGHT));
     RowConstraints r1Constraint = new RowConstraints();
     r1Constraint.setPercentHeight(90);
     mainPane.getRowConstraints().add(r1Constraint);
@@ -148,11 +150,20 @@ public class Connect4GUI extends Application{
     primaryStage.show();
     
 
+    Application.Parameters params2 = getParameters();
+    List<String> rawArguments2 = params2.getRaw();
+    int player = Integer.parseInt(rawArguments2.get(1));
 
     EventHandler<MouseEvent> eventHandler0 = new 
         EventHandler<MouseEvent>(){
       @Override
       public void handle(MouseEvent e){
+	if(message.getText().charAt(0) == 'R' && player == 1){
+		return;
+	}
+	if(message.getText().charAt(0) == 'B' && player == 2){
+		return;
+	}
         try{
           out.writeObject(1);
 	}
@@ -169,6 +180,12 @@ public class Connect4GUI extends Application{
         EventHandler<MouseEvent>(){
       @Override
       public void handle(MouseEvent e){
+	if(message.getText().charAt(0) == 'R' && player == 1){
+		return;
+	}
+	if(message.getText().charAt(0) == 'B' && player == 2){
+		return;
+	}
         try{
           out.writeObject(2);
 	}
@@ -184,6 +201,12 @@ public class Connect4GUI extends Application{
         EventHandler<MouseEvent>(){
       @Override
       public void handle(MouseEvent e){
+	if(message.getText().charAt(0) == 'R' && player == 1){
+		return;
+	}
+	if(message.getText().charAt(0) == 'B' && player == 2){
+		return;
+	}
         try{
           out.writeObject(3);
 	}
@@ -199,6 +222,12 @@ public class Connect4GUI extends Application{
         EventHandler<MouseEvent>(){
       @Override
       public void handle(MouseEvent e){
+	if(message.getText().charAt(0) == 'R' && player == 1){
+		return;
+	}
+	if(message.getText().charAt(0) == 'B' && player == 2){
+		return;
+	}
         try{
           out.writeObject(4);
 	}
@@ -214,6 +243,12 @@ public class Connect4GUI extends Application{
         EventHandler<MouseEvent>(){
       @Override
       public void handle(MouseEvent e){
+	if(message.getText().charAt(0) == 'R' && player == 1){
+		return;
+	}
+	if(message.getText().charAt(0) == 'B' && player == 2){
+		return;
+	}
         try{
           out.writeObject(5);
 	}
@@ -229,6 +264,12 @@ public class Connect4GUI extends Application{
         EventHandler<MouseEvent>(){
       @Override
       public void handle(MouseEvent e){
+	if(message.getText().charAt(0) == 'R' && player == 1){
+		return;
+	}
+	if(message.getText().charAt(0) == 'B' && player == 2){
+		return;
+	}
         try{
           out.writeObject(6);
 	}
@@ -244,6 +285,12 @@ public class Connect4GUI extends Application{
         EventHandler<MouseEvent>(){
       @Override
       public void handle(MouseEvent e){
+	if(message.getText().charAt(0) == 'R' && player == 1){
+		return;
+	}
+	if(message.getText().charAt(0) == 'B' && player == 2){
+		return;
+	}
         try{
           out.writeObject(7);
 	}
@@ -255,7 +302,9 @@ public class Connect4GUI extends Application{
     columns[6].addEventFilter(MouseEvent.MOUSE_CLICKED,
 			     eventHandler6);
     thread = new Thread(() ->{
-      int port =8000;
+      Application.Parameters params = getParameters();
+      List<String> rawArguments = params.getRaw();
+      int port = Integer.parseInt(rawArguments.get(0));
       String host = "localhost";
       Socket socket;
       try{
@@ -336,6 +385,7 @@ public class Connect4GUI extends Application{
     thread.start();
     primaryStage.setOnCloseRequest(e -> {
       running = false;
+      /*
       try{
 	columns[0].removeEventFilter(MouseEvent.MOUSE_CLICKED,
 		       	eventHandler0);
@@ -358,6 +408,7 @@ public class Connect4GUI extends Application{
         System.out.println("Error closing streams");
 	Platform.exit();
       }
+      */
     });
   }
 
@@ -365,7 +416,7 @@ public class Connect4GUI extends Application{
    * This function launches a GUI window.
    * @param args command line arguments.
    */
-  public static void main(String args[]){
+  public static void main(String args[]){ 
     launch(args);
   }
 }

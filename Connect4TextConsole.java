@@ -1,16 +1,62 @@
-
+import java.util.Scanner;
 import java.lang.StringBuilder;
 /**
  * The Connect4 console output for the Connect4 class.
  * @author Marcus Miller
- * @version 2
+ * @version 4
  */
 public class Connect4TextConsole{
+  /**
+   * Gets players move
+   * @param s Scanner used to read input
+   * @return the column that the player selected
+   */
+  public int getMove(Scanner s){
+    int move = 0;
+    try{
+      move = s.nextInt();
+    }
+    catch(Exception ex){
+      s.nextLine();
+      return 0;
+    }
+    finally{
+      return move;
+    }
+  }
+  /**
+   * gets the game mode: C=computer, P=player
+   * @param s used to get keyboard input
+   * @return the game mode
+   */
+  public char getGameMode(Scanner s){
+    String mode = s.nextLine();
+    if (mode.length() == 0) return 'a';
+    return mode.charAt(0);
+  }
+  /**
+   * gets the display mode: T=text console, G=GUI
+   * @param s used to get keyboard input
+   * @return the display mode
+   */
+  public char getDisplayMode(Scanner s){
+    String mode = s.nextLine();
+    if(mode.length() == 0) return 'a';
+    return mode.charAt(0);
+  }
+  /**
+   * displays message from connect4client
+   * @param text to be printed to screen
+   */
+  public void displayMessage(String text){
+    System.out.println(text);
+  }
+  
   /**
    * This function prints the get game mode message of the game.
    * @return The game mode message of the game.
    */
-  public String displayStart(){
+  public String displayGetGameMode(){
     String s = "Enter 'P' if you want to play against another player; enter 'C' to play against computer.\n";
     System.out.print(s);
     return s;
@@ -58,7 +104,7 @@ public class Connect4TextConsole{
    * @param option The game mode selected.
    * @return A string of the game mode selected.
    */
-  public String displayStart2(char option) throws IllegalArgumentException{
+  public String displayBeginGame(char option) throws IllegalArgumentException{
     if (option == 'C'){
       String s = "Start game against computer.\n";
       System.out.print(s);
@@ -66,6 +112,8 @@ public class Connect4TextConsole{
     }
     else if (option == 'P'){
       String s = "Start game against player.\n";
+      System.out.print(s);
+      s = "Waiting for another player.\n";
       System.out.print(s);
       return s;
     }
