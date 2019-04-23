@@ -1,3 +1,5 @@
+package core;
+
 import java.net.Socket;
 import java.net.ServerSocket;
 import java.io.ObjectInputStream;
@@ -5,6 +7,8 @@ import java.io.ObjectOutputStream;
 import java.util.Scanner;
 import javafx.application.Application;
 import javafx.application.Platform;
+import ui.Connect4GUI;
+import ui.Connect4TextConsole;
 /**
  * Runs a Connect4 game that can be play a computer or connect to another
  * through a Connect4Server
@@ -44,6 +48,7 @@ public class Connect4Client{
       }
     }
     try{
+    	
       c4c.socket = new Socket("localhost", 8000);
       c4c.out = new ObjectOutputStream(
 		    c4c.socket.getOutputStream());
@@ -89,11 +94,11 @@ public class Connect4Client{
       thread.start();
       try{
         c4c.serverGUI = new ServerSocket(portGUI);
-	c4c.socketGUI = c4c.serverGUI.accept();
-	c4c.outGUI = new ObjectOutputStream(
-			c4c.socketGUI.getOutputStream());
-	c4c.inGUI = new ObjectInputStream(
-			c4c.socketGUI.getInputStream());
+	    c4c.socketGUI = c4c.serverGUI.accept();
+	    c4c.outGUI = new ObjectOutputStream(
+	    c4c.socketGUI.getOutputStream());
+	    c4c.inGUI = new ObjectInputStream(
+		c4c.socketGUI.getInputStream());
       }
       catch (Exception ex){
         ex.printStackTrace();

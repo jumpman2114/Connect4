@@ -1,12 +1,14 @@
+package ui;
+
 import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.shape.Line;
+//import javafx.scene.shape.Line;
 import javafx.stage.Stage;
 import javafx.scene.paint.Color;
 import javafx.scene.input.MouseEvent;
 import javafx.event.EventHandler;
-import javafx.event.Event;
+//import javafx.event.Event;
 import javafx.scene.layout.GridPane;
 import javafx.scene.shape.Circle;
 import javafx.scene.layout.RowConstraints;
@@ -17,11 +19,11 @@ import javafx.scene.text.Text;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
-import java.io.IOException;
+//import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.net.ServerSocket;
+//import java.net.ServerSocket;
 import javafx.application.Platform;
 import java.lang.Integer;
 import java.util.List;
@@ -320,18 +322,18 @@ public class Connect4GUI extends Application{
       char c = ' ';
       char[][] board= null;
       String text="";
-      Object obj = null;
+      Object inData = null;
       running = true;
       while(running){
         try{
-          obj = in.readObject();
+          inData = in.readObject();
         }
         catch(Exception ex){
           System.out.println("Error reading object");
         }
          
-        if (obj instanceof char[][]){
-	  board = (char[][]) obj;
+        if (inData instanceof char[][]){
+	  board = (char[][]) inData;
           for(int r = 0; r<ROWS;r++){
             for(int col = 0; col < COLUMNS; col++){
               c = board[r][col];
@@ -347,8 +349,8 @@ public class Connect4GUI extends Application{
             }
           }
         }
-        else if (obj instanceof String){
-	  text = (String) obj;
+        else if (inData instanceof String){
+	  text = (String) inData;
           message.setText(text);
 	  if (text.equals("Black Wins!") || text.equals("Red Wins!") ||
 			  text.equals("Tie Game!") ){
@@ -385,30 +387,6 @@ public class Connect4GUI extends Application{
     thread.start();
     primaryStage.setOnCloseRequest(e -> {
       running = false;
-      /*
-      try{
-	columns[0].removeEventFilter(MouseEvent.MOUSE_CLICKED,
-		       	eventHandler0);
-	columns[1].removeEventFilter(MouseEvent.MOUSE_CLICKED,
-		       	eventHandler1);
-	columns[2].removeEventFilter(MouseEvent.MOUSE_CLICKED,
-		       	eventHandler2);
-	columns[3].removeEventFilter(MouseEvent.MOUSE_CLICKED,
-		       	eventHandler3);
-	columns[4].removeEventFilter(MouseEvent.MOUSE_CLICKED,
-		       	eventHandler4);
-	columns[5].removeEventFilter(MouseEvent.MOUSE_CLICKED,
-		       	eventHandler5);
-	columns[6].removeEventFilter(MouseEvent.MOUSE_CLICKED,
-		       	eventHandler6);
-        out.close();
-	in.close();
-      }
-      catch(Exception ex){
-        System.out.println("Error closing streams");
-	Platform.exit();
-      }
-      */
     });
   }
 

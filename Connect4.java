@@ -1,16 +1,18 @@
-import java.util.Scanner;
-import java.util.InputMismatchException;
-import javafx.application.Application;
-import javafx.stage.Stage;
-import javafx.application.Platform;
-import java.io.IOException;
-import java.lang.Thread;
+package core;
+
+//import java.util.Scanner;
+//import java.util.InputMismatchException;
+//import javafx.application.Application;
+//import javafx.stage.Stage;
+//import javafx.application.Platform;
+//import java.io.IOException;
+//import java.lang.Thread;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.ServerSocket;
+//import java.net.ServerSocket;
 import java.net.Socket;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+//import java.io.FileInputStream;
+//import java.io.FileOutputStream;
 /**
  * The Connect4 class is the logic for the Connect4 game.
  * @author Marcus Miller
@@ -37,8 +39,8 @@ public class Connect4{
   private ObjectOutputStream out1;/**output from player 1*/
   private ObjectInputStream in2;/**input from player 2*/
   private ObjectOutputStream out2;/**output from player2*/
-  private Socket socket1;/**player 1 socket*/
-  private Socket socket2;/**player 2 socket*/
+  //private Socket socket1;/**player 1 socket*/
+ // private Socket socket2;/**player 2 socket*/
   private int numPlayers;/**number of human players*/
 
   /**
@@ -181,10 +183,10 @@ public class Connect4{
    * @param nPlayers number of human players
    */
   public Connect4(Socket s1, Socket s2, ObjectOutputStream o1,
-		  ObjectOutputStream o2, ObjectInputStream i1,
-		  ObjectInputStream i2, int nPlayers){
-    socket1 = s1;
-    socket2 = s2;
+		          ObjectOutputStream o2, ObjectInputStream i1,
+		          ObjectInputStream i2, int nPlayers){
+    //socket1 = s1;
+    //socket2 = s2;
     in1 = i1;
     in2 = i2;
     out1 = o1;

@@ -1,3 +1,5 @@
+package core;
+
 import java.util.concurrent.ThreadLocalRandom;
 /**
  * This class is a computer player for the Connect4 class.

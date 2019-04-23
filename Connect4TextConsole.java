@@ -1,3 +1,5 @@
+package ui;
+
 import java.util.Scanner;
 import java.lang.StringBuilder;
 /**
@@ -20,9 +22,7 @@ public class Connect4TextConsole{
       s.nextLine();
       return 0;
     }
-    finally{
-      return move;
-    }
+    return move;
   }
   /**
    * gets the game mode: C=computer, P=player
