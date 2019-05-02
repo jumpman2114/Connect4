@@ -15,7 +15,8 @@ import ui.Connect4TextConsole;
  * @author Marcus Miller
  * @version 4
  */
-public class Connect4Client{
+public class Connect4Client extends Connect4Constants{
+  private int port = 8000;
   private Socket socket; /**socket that talks to server */
   private ObjectOutputStream out; /**output to server */
   private ObjectInputStream in; /**input from server */
@@ -31,65 +32,67 @@ public class Connect4Client{
     Connect4Client c4c = new Connect4Client();
     Connect4TextConsole display = new Connect4TextConsole();
     Scanner s = new Scanner(System.in);
-    char displayMode = 'a';
+    char displayMode = 0;
     display.displayGetDisplay();
-    while(!(displayMode == 'G' || displayMode == 'T')){
+    while(!(displayMode == GUI || displayMode == TERMINAL)){
       displayMode = display.getDisplayMode(s);
-      if (!(displayMode == 'G' || displayMode == 'T')){
+      if (!(displayMode == GUI || displayMode == TERMINAL)){
         display.displayWrongDisplay();
       }
     }
     display.displayGetGameMode();
-    char mode = 'a';
-    while(!(mode == 'C' || mode == 'P')){
+    char mode = 0;
+    while(!(mode == COMPUTER || mode == PLAYER)){
       mode = display.getGameMode(s);
-      if (!(mode == 'C' || mode == 'P')){
+      if (!(mode == COMPUTER || mode == PLAYER)){
         display.displayWrongMode();
       }
     }
     try{
-    	
-      c4c.socket = new Socket("localhost", 8000);
-      c4c.out = new ObjectOutputStream(
-		    c4c.socket.getOutputStream());
+      c4c.socket = new Socket("localhost", c4c.port);
+      c4c.out = new ObjectOutputStream(c4c.socket.getOutputStream());
       c4c.in = new ObjectInputStream(c4c.socket.getInputStream());
     }
     catch (Exception ex){
       ex.printStackTrace();
+      return;
     }
-    int player = 1;
+    char player = PLAYER1;
     Object obj = null;
+    int portGUI =0;
     try{
       c4c.out.writeObject(mode);
-      player = (int) c4c.in.readObject();
+      player = (char) c4c.in.readObject();
+      portGUI = (int) c4c.in.readObject();
+     
     }
     catch (Exception ex){
       ex.printStackTrace();
+      return;
     }
-    int ROWS = 6;
-    int COLUMNS = 7;
+
     char[][] board = new char[ROWS][COLUMNS];
     for(int r = 0; r < ROWS; r++){
       for(int c = 0; c < COLUMNS; c++){
         board[r][c] = ' ';
       }
     }
-    int portGUI = 0;
-    try{
-      portGUI = (int) c4c.in.readObject();
-    }
-    catch(Exception ex){
-      ex.printStackTrace();
-    }
-    String playerString = Integer.toString(player);
+
+    String playerString = Character.toString(player);
     String portGUIString = Integer.toString(portGUI);
     Runnable runnable = ()->{
-      Application.launch(Connect4GUI.class, portGUIString,
-		      playerString);
-      Platform.setImplicitExit(true);
+      try {
+        Application.launch(Connect4GUI.class, portGUIString,
+		                   playerString);
+        Platform.setImplicitExit(true);
+      }
+      catch(Exception ex){
+    	ex.printStackTrace();
+    	return;
+      }
     };
     Thread thread = null;
-    if (displayMode == 'G'){
+    if (displayMode == GUI){
       thread = new Thread(runnable);
       thread.start();
       try{
@@ -102,9 +105,10 @@ public class Connect4Client{
       }
       catch (Exception ex){
         ex.printStackTrace();
+        return;
       }
     }
-    if (displayMode == 'T'){
+    if (displayMode == TERMINAL){
       display.displayBoard(board);
       display.displayBeginGame(mode);
     }
@@ -114,143 +118,155 @@ public class Connect4Client{
         obj = c4c.in.readObject();
       }
       catch(Exception ex){
-        System.out.println("Error reading object");
         ex.printStackTrace();
+        break;
       }
       if (obj instanceof String){
         text = (String) obj;
-	if (text.equals("Black Wins!") || text.equals("Red Wins!") ||
-			text.equals("Tie Game!")){
-	  if (displayMode == 'T'){
-	    if(text.equals("Black Wins!")){
-              display.displayWinner(1);
-	    }
-	    else if (text.equals("Red Wins!")){
-              display.displayWinner(2);
-	    }
-	    else{
-              display.displayWinner(3);
-	    }
-	  }
-	  else{
-	    try{
+	    if (text.equals(PLAYER1_WINS_MESSAGE) || text.equals(PLAYER2_WINS_MESSAGE) ||
+			text.equals(TIE_GAME_MESSAGE)){
+	      if (displayMode == TERMINAL){
+	        if(text.equals(PLAYER1_WINS_MESSAGE)){
+              display.displayWinner(PLAYER1_WINS);
+	        }
+	        else if (text.equals(PLAYER2_WINS_MESSAGE)){
+              display.displayWinner(PLAYER2_WINS);
+	        }
+	        else{
+              display.displayWinner(TIE_GAME); // Tie game
+	        }
+	      } 
+	      else{
+	        try{
               c4c.outGUI.writeObject(text);
-	    }
-	    catch(Exception ex){
+	        }
+	        catch(Exception ex){
               ex.printStackTrace();
-	    }
-	  }
+              break;
+	        }
+	      }
           break;
-	}
-        else if (mode == 'C' && (text.equals("Red's turn.") ||
-	  text.equals("Red invalid move. Red's turn."))){
-	  if (displayMode == 'T'){
-	    if(text.equals("Red invalid move. Red's turn.")){
-	      display.invalidMove();
 	    }
-	    display.displayPlayerTurn('O');
-	  }
-	  else{
-	    try{
+        else if (mode == COMPUTER && (text.equals(PLAYER2_TURN_MESSAGE) ||
+	             text.equals(PLAYER2_INVALID_TURN_MESSAGE))){
+	      if (displayMode == TERMINAL){
+	        if(text.equals(PLAYER2_INVALID_TURN_MESSAGE)){
+	          display.invalidMove();
+	        }
+	        display.displayPlayerTurn(PLAYER2);
+	      }
+	      else{
+	        try{
               c4c.outGUI.writeObject(text);
-	    }
-	    catch(Exception ex){
+	        }
+	        catch(Exception ex){
               ex.printStackTrace();
-	    }
-	  } 
-	  continue;
+              break;
+	        }
+	      } 
+	      continue;
         }	
-        else if ((text.equals("Black's turn.") || 
-		text.equals("Black invalid move. Black's turn.")) &&
-                player == 1){
-	  if (displayMode == 'T'){
+        else if ((text.equals(PLAYER1_TURN_MESSAGE) || 
+		          text.equals(PLAYER1_INVALID_TURN_MESSAGE)) &&
+                  player == PLAYER1){
+	      if (displayMode == TERMINAL){
             try{
-	      if(text.equals("Black invalid move. Black's turn.")){
+	          if(text.equals(PLAYER1_INVALID_TURN_MESSAGE)){
                 display.invalidMove();
-	      }
-	      display.displayPlayerTurn('X');
+	          }
+	          display.displayPlayerTurn(PLAYER1);
               c4c.out.writeObject(display.getMove(s));
-	    }
-	    catch(Exception ex){
-              System.out.println("Error writing to Connect4 from Client.");
+	        }
+	        catch(Exception ex){
               ex.printStackTrace();
-	    } 
-	  }
-	  else{
-	    try{
+              break;
+	        } 
+	      }
+	      else{
+	        try{
               c4c.outGUI.writeObject(text);
-              c4c.out.writeObject(c4c.inGUI.readObject());
-	    }
-	    catch(Exception ex){
-              System.out.println("Error writing to Connect4 from Client.");
+              Object tmp = c4c.inGUI.readObject();
+              c4c.out.writeObject(tmp);
+	        }
+	        catch(Exception ex){
               ex.printStackTrace();
-	    }
-	  }
+              break;
+	        }
+	      }
         }	
-        else if ((text.equals("Red's turn.") || 
-		text.equals("Red invalid move. Red's turn.")) &&
-                player == 2){
-	  if (displayMode == 'T'){
-	    try{
-	      if(text.equals("Red invalid move. Red's turn.")){
+        else if ((text.equals(PLAYER2_TURN_MESSAGE) || 
+		          text.equals(PLAYER2_INVALID_TURN_MESSAGE)) &&
+                  player == PLAYER2){
+	      if (displayMode == TERMINAL){
+	        try{
+	          if(text.equals(PLAYER2_INVALID_TURN_MESSAGE)){
                 display.invalidMove();
-	      }
-	      display.displayPlayerTurn('O');
+	          }
+	          display.displayPlayerTurn(PLAYER2);
               c4c.out.writeObject(display.getMove(s));
-	    }
-	    catch(Exception ex){
-              System.out.println("Error writing to Connect4.");
+	        }
+	        catch(Exception ex){
               ex.printStackTrace();
-	    }
-	  }
-	  else{
-	    try{
+              break;
+	        }
+	      }
+	      else{
+	        try{
               c4c.outGUI.writeObject(text);
               c4c.out.writeObject(c4c.inGUI.readObject());
-	    }
-	    catch(Exception ex){
-              System.out.println("Error reading from GUI.");
+	        }
+	        catch(Exception ex){
               ex.printStackTrace();
-	    }
-	  }
+              break;
+	        }
+	      }
         }
-        else{
-	  String tmp = text + " Waiting for other player.";
-          if(displayMode == 'T'){
-	    display.displayMessage(tmp);
-	  }
-	  else{
+        else{	      
+          if(displayMode == TERMINAL){
+            if (player != PLAYER1) {
+              display.displayMessage(WAITING_FOR_PLAYER1_TERMINAL);
+            }
+            else {
+              display.displayMessage(WAITING_FOR_PLAYER2_TERMINAL);
+            }
+	      }
+	      else{
             try{
-              c4c.outGUI.writeObject(tmp);
-	    }
-	    catch(Exception ex){
-              System.out.println("Error reading from GUI.");
+              if (player != PLAYER1) {
+                c4c.outGUI.writeObject(PLAYER1_TURN_MESSAGE);  
+              }
+              else {
+                c4c.outGUI.writeObject(PLAYER2_TURN_MESSAGE);
+              }
+	        }
+	        catch(Exception ex){    
               ex.printStackTrace();
-	    }
-	  }
-	}	
+              break;
+	        }
+	      }
+	    }	
       } 
       else if (obj instanceof char[][]){
         board = (char[][]) obj;
-	if (displayMode == 'T'){
+	    if (displayMode == TERMINAL){
           display.displayBoard(board);
-	}
-	else{
+	    }
+	    else{
           try{
             c4c.outGUI.writeObject(board);
-	  }
-	  catch(Exception ex){
-            System.out.println("Error writing to GUI.");
+	      }
+	      catch(Exception ex){
             ex.printStackTrace();
-	  }
-	}
+            break;
+	      }
+	    }
       }
       else{
         System.out.println("Not a String or char[][] type");
       }
-    }
+    } 
     try{
-      if(displayMode == 'G'){
+      if(displayMode == GUI){
         c4c.outGUI.close();
         c4c.inGUI.close();
       }
@@ -258,8 +274,8 @@ public class Connect4Client{
       c4c.in.close();
     }
     catch(Exception ex){
-      System.out.println("Closing streams in client.");
       ex.printStackTrace();
+      return;
     }
   }
 }

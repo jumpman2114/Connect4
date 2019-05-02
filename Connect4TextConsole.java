@@ -1,5 +1,5 @@
 package ui;
-
+import core.*;
 import java.util.Scanner;
 import java.lang.StringBuilder;
 /**
@@ -7,7 +7,7 @@ import java.lang.StringBuilder;
  * @author Marcus Miller
  * @version 4
  */
-public class Connect4TextConsole{
+public class Connect4TextConsole extends Connect4Constants{
   /**
    * Gets players move
    * @param s Scanner used to read input
@@ -31,7 +31,7 @@ public class Connect4TextConsole{
    */
   public char getGameMode(Scanner s){
     String mode = s.nextLine();
-    if (mode.length() == 0) return 'a';
+    if (mode.length() == 0) return 0;
     return mode.charAt(0);
   }
   /**
@@ -41,7 +41,7 @@ public class Connect4TextConsole{
    */
   public char getDisplayMode(Scanner s){
     String mode = s.nextLine();
-    if(mode.length() == 0) return 'a';
+    if(mode.length() == 0) return 0;
     return mode.charAt(0);
   }
   /**
@@ -57,8 +57,8 @@ public class Connect4TextConsole{
    * @return The game mode message of the game.
    */
   public String displayGetGameMode(){
-    String s = "Enter 'P' if you want to play against another player; enter 'C' to play against computer.\n";
-    System.out.print(s);
+	String s = GET_GAME_MODE_TERMINAL;
+    System.out.println(s);
     return s;
   }
   /**
@@ -66,8 +66,8 @@ public class Connect4TextConsole{
    * @return The get display mode message.
    */
   public String displayGetDisplay(){
-    String s = "Begin Game. Enter 'G' if you want a GUI display; enter 'T' to have a text console.\n";
-    System.out.print(s);
+    String s = GET_DISPLAY_TERMINAL;
+    System.out.println(s);
     return s;
   } 
   /**
@@ -75,8 +75,8 @@ public class Connect4TextConsole{
    * @return The invalid display mode message.
    */
   public String displayWrongDisplay(){
-    String s = "Invalid! Enter 'G' if you want a GUI display; enter 'T' to have a text console.\n";
-    System.out.print(s);
+    String s = INVALID_DISPLAY_TERMINAL;
+    System.out.println(s);
     return s;
   } 
 
@@ -86,8 +86,8 @@ public class Connect4TextConsole{
    * @return A string of the computer's move.
    */
   public String displayMove(int move){
-    String s = "" + move + "\n";
-    System.out.print(s);
+    String s = "" + move;
+    System.out.println(s);
     return s;
   }
   /**
@@ -95,8 +95,8 @@ public class Connect4TextConsole{
    * @return A string error message.
    */ 
   public String displayWrongMode(){
-    String s = "Invalid! Enter 'P' if you want to play against another player; enter 'C' to play against computer.\n";
-    System.out.print(s);
+    String s = INVALID_DISPLAY_TERMINAL;
+    System.out.println(s);
     return s;
   }
   /**
@@ -105,16 +105,14 @@ public class Connect4TextConsole{
    * @return A string of the game mode selected.
    */
   public String displayBeginGame(char option) throws IllegalArgumentException{
-    if (option == 'C'){
-      String s = "Start game against computer.\n";
-      System.out.print(s);
+    if (option == COMPUTER){
+      String s = START_COMPUTER_GAME_TERMINAL;
+      System.out.println(s);
       return s;
     }
     else if (option == 'P'){
-      String s = "Start game against player.\n";
-      System.out.print(s);
-      s = "Waiting for another player.\n";
-      System.out.print(s);
+      String s = START_PLAYER_GAME_TERMINAL;
+      System.out.println(s);
       return s;
     }
     else{
@@ -123,7 +121,7 @@ public class Connect4TextConsole{
   }
 
   /**
-   * This funtion prints the checker board.
+   * This function prints the checker board.
    * @param board A Checker board.
    * @return Returns a string representation of the board.
    */
@@ -137,8 +135,8 @@ public class Connect4TextConsole{
       }
       s.append('\n');
     }
-    s.append('\n');
-    System.out.print(s.toString());
+    
+    System.out.println(s.toString());
     return s.toString();
   }
 
@@ -148,13 +146,14 @@ public class Connect4TextConsole{
    * @return returns a message saying whose turn it is.
    */
   public String displayPlayerTurn(char player){
-    StringBuilder s = new StringBuilder();
-    String first = "Player ";
-    s.append(first);
-    s.append(player);
-    String last = " - your turn. Choose a column number 1-7.\n";
-    s.append(last);
-    System.out.print(s.toString());
+    String s;
+    if (player == PLAYER1) {
+      s= PLAYER1_YOUR_TURN_TERMINAL;
+    }
+    else {
+      s= PLAYER2_YOUR_TURN_TERMINAL;
+    }
+    System.out.println(s);
     return s.toString();
   }
 
@@ -164,23 +163,18 @@ public class Connect4TextConsole{
    * @return The end of game message.
    */
   public String displayWinner(int result){
-    StringBuilder s = new StringBuilder();
-    String win = "Player";
-    String winEnd = " Won the Game\n";
+    String s;
+
     if (result == 1){
-      s.append(win);
-      s.append('X');
-      s.append(winEnd);
+      s = PLAYER_1_WINS_TERMINAL;
     }
     else if (result == 2){
-      s.append(win);
-      s.append('O');
-      s.append(winEnd); 
+      s = PLAYER_2_WINS_TERMINAL;
     }
     else {
-      s.append("Tie Game\n");
+      s = TIE_GAME_TERMINAL;
     }
-    System.out.print(s.toString()); 
+    System.out.println(s); 
     return s.toString();
   }
 
@@ -189,8 +183,8 @@ public class Connect4TextConsole{
    * @return An invalid move message.
    */
   public String invalidMove(){
-    String s = "Invalid move. Choose a column number from 1-7.\n"; 
-    System.out.print(s);
+    String s = INVALID_MOVE_TERMINAL; 
+    System.out.println(s);
     return s;
   }
 }

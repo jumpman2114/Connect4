@@ -8,6 +8,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.io.PrintStream;
+import java.io.File;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -56,6 +58,10 @@ public class Connect4ClientTest {
           out = new ObjectOutputStream(
   	                  socket.getOutputStream());
           in = new ObjectInputStream(socket.getInputStream());
+    	  File file = new File("./testOutput.txt");
+          PrintStream ps = new PrintStream(file);
+    	  System.setOut(ps);
+          
           out.writeObject(new Integer(1));
           out.writeObject(new Integer(8005));
           out.writeObject("Red's turn.");
@@ -159,6 +165,7 @@ public class Connect4ClientTest {
 		}
 	  };
 	  
+
 	  Thread thread = new Thread(runnable);
 	  thread.start();
 	  Connect4Client.main(null);
@@ -174,12 +181,14 @@ public class Connect4ClientTest {
 	  System.setIn(newIn);
 	  Connect4Client.main(null);
 	  
+	  Thread.sleep(15000);
       data = "G\nP\n";
 	  newIn = new ByteArrayInputStream( data.getBytes("UTF-8") );
 	  System.setIn(newIn);
 	  Connect4Client.main(null);
-	  
-      data = "G\nC\n";
+      
+	  Thread.sleep(15000);
+	  data = "G\nC\n";
 	  newIn = new ByteArrayInputStream( data.getBytes("UTF-8") );
 	  System.setIn(newIn);
 	  Connect4Client.main(null);

@@ -18,7 +18,7 @@ import java.net.Socket;
  * @author Marcus Miller
  * @version 4
  */
-public class Connect4{
+public class Connect4 extends Connect4Constants{
   /**
    * board represents the Connect4 board
    */
@@ -27,14 +27,7 @@ public class Connect4{
    * height represents the current height of each column
    */
   public int [] heights;
-  /**
-   * COLUMNS is the number of columns on the Checker board.
-   */
-  public static int COLUMNS = 7;
-  /**
-   * ROWS is the number of rows on the Checker board.
-   */
-  public static int ROWS = 6;
+
   private ObjectInputStream in1;/**input from player 1*/
   private ObjectOutputStream out1;/**output from player 1*/
   private ObjectInputStream in2;/**input from player 2*/
@@ -48,66 +41,66 @@ public class Connect4{
    * You can play another player or a computer.
    * You can chose between a GUI or console output.
    */
-  public void startGame() throws Exception{
+  public void startGame(){
     Connect4ComputerPlayer computer = new Connect4ComputerPlayer();
       
-    char mode = 'C';
+    char mode = COMPUTER;
     if (numPlayers == 2){
-      mode = 'P';
+      mode = PLAYER;
     } 
-    char turn = 'X';
+    char turn = PLAYER1;
     int move=0;
     int result = 0; //0=still playing, 1=player X wins, 2=player O wins, 3=tie
     int valid=1; //0=not valid move, 1-6= valid and the number represents the row
     //main loop
-    while (result == 0){
+    while (result == ACTIVE){
       try{
-        if (turn == 'X' && valid != 0){
-          out1.writeObject("Black's turn.");
-	  if (numPlayers == 2){
-            out2.writeObject("Black's turn.");
-	  }
-	}
-	else if (turn == 'X' && valid == 0){
-          out1.writeObject("Black invalid move. Black's turn.");
-	  if (numPlayers == 2){
-            out2.writeObject("Black invalid move. Black's turn.");
-	  }
-	}
-	else if (turn == 'O' && valid != 0){
-          out1.writeObject("Red's turn.");
-	  if (numPlayers == 2){
-            out2.writeObject("Red's turn.");
-	  }
-	}
-	else{
-          out1.writeObject("Red invalid move. Red's turn.");
+        if (turn == PLAYER1 && valid != 0){
+          out1.writeObject(PLAYER1_TURN_MESSAGE);
+	      if (numPlayers == 2){
+            out2.writeObject(PLAYER1_TURN_MESSAGE);
+	      }
+	    }
+	    else if (turn == PLAYER1 && valid == 0){
+          out1.writeObject(PLAYER1_INVALID_TURN_MESSAGE);
+	      if (numPlayers == 2){
+            out2.writeObject(PLAYER1_INVALID_TURN_MESSAGE);
+	      }
+	    }
+	    else if (turn == PLAYER2 && valid != 0){
+          out1.writeObject(PLAYER2_TURN_MESSAGE);
+	      if (numPlayers == 2){
+            out2.writeObject(PLAYER2_TURN_MESSAGE);
+	      }
+	    }
+	    else if (turn == PLAYER1 && valid == 0){
+          out1.writeObject(PLAYER2_INVALID_TURN_MESSAGE);
           if (numPlayers == 2){
-	    out2.writeObject("Red invalid move. Red's turn.");
-	  }
-	}
+	        out2.writeObject(PLAYER2_INVALID_TURN_MESSAGE);
+	      }
+	    }
       }
       catch(Exception ex){
-        System.out.println("Error displaying message");
-	break;
+    	ex.printStackTrace();
+	    break;
       }	
 
       //get move
-      if (mode == 'C' && turn == 'O'){//get computer move
+      if (mode == COMPUTER && turn == PLAYER2){//get computer move
         move = computer.getMove(board);
       }
       else{// get player move
         try{
-	  if (turn == 'X'){
+	      if (turn == PLAYER1){
             move = (int) in1.readObject();
-	  }
-	  else{
+	      }
+	      else{
             move = (int) in2.readObject();
-	  }
-	}
-	catch(Exception ex){
-          System.out.println("Error reading player move");
-	  break;
+	      }
+	    }
+	    catch(Exception ex){
+	      ex.printStackTrace();
+	      break;
       	}
       }
       
@@ -121,54 +114,53 @@ public class Connect4{
       placePiece(move, turn);
       try{
         out1.reset();
-	out1.writeObject(board);
+	    out1.writeObject(board);
         if (numPlayers == 2){
           out2.reset();
-	  out2.writeObject(board);
-	}
+	      out2.writeObject(board);
+	    }
       }
       catch(Exception ex){
-        System.out.println("Error writing board to GUI");
         ex.printStackTrace();
-	break;
+	    break;
       }
 
       //get current game state
       result = isWin(valid, move, turn);
-      if (turn == 'X') turn = 'O';
-      else turn = 'X';
+      if (turn == PLAYER1) turn = PLAYER2;
+      else turn = PLAYER1;
     }
     //end of main loop
 
     try{
-      if (result == 1){
-        out1.writeObject("Black Wins!");
-	if (numPlayers == 2){
-          out2.writeObject("Black Wins!");
-	}
+      if (result == PLAYER1_WINS){
+        out1.writeObject(PLAYER1_WINS_MESSAGE);
+	    if (numPlayers == 2){
+          out2.writeObject(PLAYER1_WINS_MESSAGE);
+	    }
       }
-      else if (result == 2){
-        out1.writeObject("Red Wins!");
-	if (numPlayers == 2){
-          out2.writeObject("Red Wins!");
-	}
+      else if (result == PLAYER2_WINS){
+        out1.writeObject(PLAYER2_WINS_MESSAGE);
+	    if (numPlayers == 2){
+          out2.writeObject(PLAYER2_WINS_MESSAGE);
+	    }
       }
       else{
-        out1.writeObject("Tie Game!");
-	if (numPlayers == 2){
-          out2.writeObject("Tie Game!");
-	}
+        out1.writeObject(TIE_GAME_MESSAGE);
+	    if (numPlayers == 2){
+          out2.writeObject(TIE_GAME_MESSAGE);
+	    }
+      }
+      out1.close();
+      in1.close();
+      if (numPlayers == 2){
+        out2.close();
+        in2.close();
       }
     }
     catch (Exception ex){
-      System.out.println("Error writing winner to GUI");
       ex.printStackTrace();
-    }
-    out1.close();
-    in1.close();
-    if (numPlayers == 2){
-      out2.close();
-      in2.close();
+      return;
     }
   }
   
@@ -252,8 +244,8 @@ public class Connect4{
       else break;
     }
     if (total >= 4){
-      if (turn == 'X') return 1;
-      else return 2;
+      if (turn == PLAYER1) return PLAYER1_WINS;
+      else return PLAYER2_WINS;
     }
     //check \ 
     int r = row + 1;
@@ -278,8 +270,8 @@ public class Connect4{
       else break;
     }
     if (total >= 4){
-      if (turn == 'X') return 1;
-      else return 2;
+      if (turn == PLAYER1) return PLAYER1_WINS;
+      else return PLAYER2_WINS;
     }
     //check vertical
     r = row-1;
@@ -300,8 +292,8 @@ public class Connect4{
       else break;
     }
     if (total >= 4){
-      if (turn == 'X') return 1;
-      else return 2;
+      if (turn == PLAYER1) return PLAYER1_WINS;
+      else return PLAYER2_WINS;
     }
     //check /
     r = row - 1;
@@ -326,13 +318,13 @@ public class Connect4{
       else break;
     }
     if (total >= 4){
-      if (turn == 'X') return 1;
-      else return 2;
+      if (turn == PLAYER1) return PLAYER1_WINS;
+      else return PLAYER2_WINS;
     }
     //check full
     for (c = 0; c < COLUMNS; c++){
-      if (heights[c] < ROWS) return 0; //still playing
+      if (heights[c] < ROWS) return ACTIVE; //still playing
     }
-    return 3; //tie
+    return TIE_GAME; //tie
   }
 }
