@@ -90,12 +90,29 @@ public class Connect4 extends Connect4Constants{
         move = computer.getMove(board);
       }
       else{// get player move
+    	Object obj;
         try{
 	      if (turn == PLAYER1){
-            move = (int) in1.readObject();
+	    	obj = in1.readObject();
+	    	if(obj instanceof String) {
+	    	  if (numPlayers == 2) {
+	    	    out2.writeObject(PLAYER1_QUIT_MESSAGE);
+	    	  }
+	    	  break;
+	    	}
+	    	else {
+	    	  move = (int) obj;
+	    	}
 	      }
 	      else{
-            move = (int) in2.readObject();
+		    obj = in2.readObject();
+		    if(obj instanceof String) {
+		      out1.writeObject(PLAYER2_QUIT_MESSAGE);
+		      break;
+		    }
+		    else {
+		      move = (int) obj;
+		    }
 	      }
 	    }
 	    catch(Exception ex){

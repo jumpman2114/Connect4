@@ -123,7 +123,25 @@ public class Connect4Client extends Connect4Constants{
       }
       if (obj instanceof String){
         text = (String) obj;
-	    if (text.equals(PLAYER1_WINS_MESSAGE) || text.equals(PLAYER2_WINS_MESSAGE) ||
+        if (text.equals(PLAYER1_QUIT_MESSAGE)) {
+          try {
+            c4c.outGUI.writeObject(PLAYER1_QUIT_MESSAGE);
+          }
+          catch(Exception ex) {
+            ex.printStackTrace();
+          }
+          break;
+        }
+        else if (text.equals(PLAYER2_QUIT_MESSAGE)) {
+          try {
+            c4c.outGUI.writeObject(PLAYER2_QUIT_MESSAGE);
+          }
+          catch(Exception ex) {
+            ex.printStackTrace();
+          }
+          break;
+        }
+        else if (text.equals(PLAYER1_WINS_MESSAGE) || text.equals(PLAYER2_WINS_MESSAGE) ||
 			text.equals(TIE_GAME_MESSAGE)){
 	      if (displayMode == TERMINAL){
 	        if(text.equals(PLAYER1_WINS_MESSAGE)){
@@ -185,8 +203,13 @@ public class Connect4Client extends Connect4Constants{
 	      else{
 	        try{
               c4c.outGUI.writeObject(text);
-              Object tmp = c4c.inGUI.readObject();
-              c4c.out.writeObject(tmp);
+              Object inData = c4c.inGUI.readObject();
+              if (inData instanceof String) {
+                c4c.out.writeObject(inData);
+                c4c.outGUI.writeObject(inData);
+                break;
+              }
+              c4c.out.writeObject(inData);
 	        }
 	        catch(Exception ex){
               ex.printStackTrace();
@@ -211,14 +234,20 @@ public class Connect4Client extends Connect4Constants{
 	        }
 	      }
 	      else{
-	        try{
-              c4c.outGUI.writeObject(text);
-              c4c.out.writeObject(c4c.inGUI.readObject());
-	        }
-	        catch(Exception ex){
-              ex.printStackTrace();
-              break;
-	        }
+		    try{
+		      c4c.outGUI.writeObject(text);
+		      Object inData = c4c.inGUI.readObject();
+		      if (inData instanceof String) {
+		        c4c.out.writeObject(inData);
+		        c4c.outGUI.writeObject(inData);
+		        break;
+		      }
+		      c4c.out.writeObject(inData);
+			}
+			catch(Exception ex){
+		      ex.printStackTrace();
+		      break;
+			}
 	      }
         }
         else{	      

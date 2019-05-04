@@ -1,6 +1,7 @@
 package ui;
 import core.*;
 
+import javafx.scene.shape.Circle;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -97,7 +98,7 @@ public class Connect4GUI extends Application {
   public void start(Stage primaryStage) throws Exception{
 	  
 
-    message.setText("");
+    message.setText(text);
     message.setVisible(true);
     message.setFont(Font.font("verdan", FontWeight.BOLD,
                     FontPosture.REGULAR, .05*HEIGHT));
@@ -114,6 +115,7 @@ public class Connect4GUI extends Application {
     for (int r=Connect4Constants.ROWS-1; r >= 0; r--){
       for(int c=0; c < Connect4Constants.COLUMNS; c++){
         Button circle = new Button();
+        //circle.setShape(new Circle(10));
         int tmp = (5-r)%Connect4Constants.ROWS;
         circles[tmp][c] = circle;
         circles[tmp][c].setBorder(new Border(new BorderStroke(Color.YELLOW, 
@@ -173,6 +175,19 @@ public class Connect4GUI extends Application {
     columns[6].addEventFilter(MouseEvent.MOUSE_CLICKED, eventHandler6);
     
     primaryStage.setOnCloseRequest(e -> {
+        try{
+          if (running == true) {
+            if (player == Connect4Constants.PLAYER1) {
+              out.writeObject(Connect4Constants.PLAYER1_QUIT_MESSAGE);
+            }
+            else {
+              out.writeObject(Connect4Constants.PLAYER2_QUIT_MESSAGE);
+            }
+          }
+        }
+        catch(Exception ex){
+          ex.printStackTrace();
+        }
         running = false;
     });
 
@@ -215,18 +230,34 @@ public class Connect4GUI extends Application {
           message.setText(text);
           running = false; 
         }
-        else if(text.charAt(0) == 'R' && player == Connect4Constants.PLAYER2){
+        else if((text.equals(Connect4Constants.PLAYER2_TURN_MESSAGE) 
+        		|| text.equals(Connect4Constants.PLAYER2_INVALID_TURN_MESSAGE))
+        		&& player == Connect4Constants.PLAYER2){
           message.setText(Connect4Constants.PLAYER2_YOUR_TURN_GUI);
         }
-        else if(text.charAt(0) == 'B' && player == Connect4Constants.PLAYER1){
+        else if((text.equals(Connect4Constants.PLAYER1_TURN_MESSAGE) 
+        		|| text.equals(Connect4Constants.PLAYER1_INVALID_TURN_MESSAGE))
+        		&& player == Connect4Constants.PLAYER1){
       	  message.setText(Connect4Constants.PLAYER1_YOUR_TURN_GUI);
         }
-        else if(text.charAt(0) == 'R' && player != Connect4Constants.PLAYER2){
+        else if((text.equals(Connect4Constants.PLAYER2_TURN_MESSAGE) 
+        		|| text.equals(Connect4Constants.PLAYER2_INVALID_TURN_MESSAGE))
+        		&& player != Connect4Constants.PLAYER2){
           message.setText(Connect4Constants.WAITING_FOR_PLAYER2_GUI); 
         }
-        else if(text.charAt(0) == 'B' && player != Connect4Constants.PLAYER1){
+        else if((text.equals(Connect4Constants.PLAYER1_TURN_MESSAGE) 
+        		|| text.equals(Connect4Constants.PLAYER1_INVALID_TURN_MESSAGE))
+        		&& player != Connect4Constants.PLAYER1){
       	  message.setText(Connect4Constants.WAITING_FOR_PLAYER1_GUI);
-        } 
+        }
+        else if (text.equals(Connect4Constants.PLAYER1_QUIT_MESSAGE)) {
+          running = false;
+          message.setText(Connect4Constants.PLAYER1_QUIT_MESSAGE);
+        }
+        else if (text.equals(Connect4Constants.PLAYER2_QUIT_MESSAGE)) {
+          running = false;
+          message.setText(Connect4Constants.PLAYER2_QUIT_MESSAGE);
+        }
     };
 
     new Thread(()->{
